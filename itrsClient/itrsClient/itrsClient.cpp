@@ -27,11 +27,13 @@ int main() {
     while (1) {
         std::string message;
         std::getline(std::cin, message);
-        message = clientName + ": " + message;
-        int sbyteCount = send(clientSocket, message.c_str(), 200, 0);
-        if (sbyteCount == SOCKET_ERROR) {
-            std::cout << "Client send error: " << WSAGetLastError() << std::endl;
-            return -1;
+        if (message != "") {
+            message = clientName + ": " + message;
+            int sbyteCount = send(clientSocket, message.c_str(), 200, 0);
+            if (sbyteCount == SOCKET_ERROR) {
+                std::cout << "Client send error: " << WSAGetLastError() << std::endl;
+                return -1;
+            }
         }
     }
 
