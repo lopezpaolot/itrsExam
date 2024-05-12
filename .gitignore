@@ -3,3 +3,9 @@
 ################################################################################
 
 /itrsServer/itrsServer/x64/Debug
+/itrsServer/.vs/itrsServer/v16
+/itrsClient/.vs/itrsClient/v16
+/itrsClient/itrsClient/x64/Debug
+/itrsClient/x64/Debug
+/.vs
+/itrsServer/x64/Debug

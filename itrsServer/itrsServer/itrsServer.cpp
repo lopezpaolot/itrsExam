@@ -122,10 +122,29 @@ void receivefromClient(SOCKET clientSocket) {
         char receiveBuffer[200];
         int rbyteCount = recv(clientSocket, receiveBuffer, 200, 0);
         if (rbyteCount < 0) {
-            std::cout << "Server recv error: " << WSAGetLastError() << std::endl;
+            int errorCode = WSAGetLastError();
+            std::cout << "Server recv error: " << errorCode << std::endl;
+            if (errorCode == 10054) //connection closed
+                socketCleanup(clientSocket);
             return;
         }
         echoToClient(receiveBuffer);
     }
+
+}
+
+void socketCleanup(SOCKET clientSocket) {
+    
+    closesocket(clientSocket);
+    std::vector<SOCKET>::iterator it = clientSocketVector.begin();
+
+    for (; it != clientSocketVector.end(); ++it) {
+        if (*it == clientSocket) {
+            clientSocketVector.erase(it);
+            break;
+        }
+    }
+
+    clientCounter--;
 
 }

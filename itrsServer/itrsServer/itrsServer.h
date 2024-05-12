@@ -20,3 +20,4 @@ void listenSocket(const SOCKET& serverSocket);
 SOCKET acceptClientSocket(SOCKET serverSocket);
 void echoToClient(char* receiveBuffer);
 void receivefromClient(SOCKET clientSocket);
+void socketCleanup(SOCKET clientSocket);
