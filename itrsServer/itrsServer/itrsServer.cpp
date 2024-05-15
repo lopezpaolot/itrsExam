@@ -4,9 +4,7 @@
 
 using namespace std;
 
-vector<SOCKET> clientSocketVector;
-vector<thread> clientThreads;
-int clientCounter = 0;
+
 
 int main()
 {
@@ -127,6 +125,7 @@ void receivefromClient(SOCKET clientSocket) {
     while (1) {
         char receiveBuffer[200];
         int rbyteCount = recv(clientSocket, receiveBuffer, 200, 0);
+        lock_guard<std::mutex> lock(mtx);
         if (rbyteCount < 0) {
             int errorCode = WSAGetLastError();
             if (errorCode == CONNECTION_CLOSED) {
