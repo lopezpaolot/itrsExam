@@ -10,8 +10,14 @@
 #include <WS2tcpip.h>
 #include <winsock2.h>
 #include <thread>
+#include <mutex>
 
 using namespace std;
+
+vector<SOCKET> clientSocketVector;
+vector<thread> clientThreads;
+int clientCounter = 0;
+mutex mtx;
 
 int initializeWSA();
 SOCKET createSocket();

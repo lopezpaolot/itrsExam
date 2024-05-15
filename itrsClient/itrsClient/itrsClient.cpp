@@ -13,27 +13,27 @@ int main(int argc, char* argv[]) {
 
     int wsaErr = initializeWSA();
     if (wsaErr != 0) {
-        std::cout << "Error initializing WSA" << std::endl;
+        cout << "Error initializing WSA" << endl;
         return -1;
     }
 
     SOCKET clientSocket = createSocket();
-    u_short port = std::strtoul(argv[2], nullptr, 10);
+    u_short port = strtoul(argv[2], nullptr, 10);
     if (connectToServer(clientSocket, argv[1], port)) {
 
-        std::string clientName;
-        std::cout << "Enter your name: ";
-        std::getline(std::cin, clientName);
-        std::cout << "=================YOU CAN NOW START SENDING MESSAGES=================" << std::endl;
-        std::thread th1(receiveFromServer, clientSocket);
+        string clientName;
+        cout << "Enter your name: ";
+        getline(cin, clientName);
+        cout << "=================YOU CAN NOW START SENDING MESSAGES=================" << endl;
+        thread th1(receiveFromServer, clientSocket);
         //receiveFromServer(clientSocket, &running);
 
 
         // Sending data to the server
         
         while (running) {
-            std::string message;
-            std::getline(std::cin, message);
+            string message;
+            getline(cin, message);
             
             if (message != "") {
                 if (message == "exit") {
@@ -44,13 +44,13 @@ int main(int argc, char* argv[]) {
                     message = clientName + ": " + message;
                 int sbyteCount = send(clientSocket, message.c_str(), 200, 0);
                 if (sbyteCount == SOCKET_ERROR) {
-                    std::cout << "Client send error: " << WSAGetLastError() << std::endl;
+                    cout << "Client send error: " << WSAGetLastError() << endl;
                     return -1;
                 }
             }
         }
 
-        closesocket(clientSocket);
+        //closesocket(clientSocket); //let server close socket
         th1.join();
 
     }
@@ -147,6 +147,7 @@ void receiveFromServer(SOCKET clientSocket) {
     while (running) {
         char receiveBuffer[200];
         int rbyteCount = recv(clientSocket, receiveBuffer, 200, 0);
+        lock_guard<std::mutex> lock(mtx);
         if (rbyteCount < 0) {
             int wsaError = WSAGetLastError();
             if (wsaError == CONNECTION_ABORT)

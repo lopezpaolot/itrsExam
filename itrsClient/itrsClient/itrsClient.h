@@ -9,8 +9,12 @@
 #include <WS2tcpip.h>
 #include <winsock2.h>
 #include <thread>
+#include <mutex>
 
-std::atomic_bool running = true;
+using namespace std;
+
+atomic_bool running = true;
+mutex mtx;
 
 int checkUserInput(int argc, char* argv[]);
 void printproperUsage();
