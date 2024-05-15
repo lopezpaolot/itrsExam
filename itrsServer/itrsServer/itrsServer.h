@@ -1,6 +1,7 @@
 #pragma once
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define CONNECTION_CLOSED 10054
 
 #include <cstring>
 #include <string>

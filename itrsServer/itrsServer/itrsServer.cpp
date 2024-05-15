@@ -110,7 +110,13 @@ void echoToClient(char* receiveBuffer) {
         SOCKET clientSocket = clientSocketVector[i];
         int sbyteCount = send(clientSocket, receiveBuffer, 200, 0);
         if (sbyteCount == SOCKET_ERROR) {
-            std::cout << "Server send error: " << WSAGetLastError() << std::endl;
+            int errorCode = WSAGetLastError();
+            if (errorCode == CONNECTION_CLOSED) {
+                socketCleanup(clientSocket);
+                std::cout << "Client Disconnected" << std::endl;
+            }
+            else
+                std::cout << "Server send error: " << errorCode << std::endl;
             return;
         }
     }
@@ -123,11 +129,17 @@ void receivefromClient(SOCKET clientSocket) {
         int rbyteCount = recv(clientSocket, receiveBuffer, 200, 0);
         if (rbyteCount < 0) {
             int errorCode = WSAGetLastError();
-            std::cout << "Server recv error: " << errorCode << std::endl;
-            if (errorCode == 10054) //connection closed
+            if (errorCode == CONNECTION_CLOSED) {
                 socketCleanup(clientSocket);
+                std::cout << "Client Disconnected" << std::endl;
+            }
+            else
+                std::cout << "Server recv error: " << errorCode << std::endl;
+            
             return;
         }
+
+        cout << receiveBuffer << endl;
         echoToClient(receiveBuffer);
     }
 
@@ -141,10 +153,9 @@ void socketCleanup(SOCKET clientSocket) {
     for (; it != clientSocketVector.end(); ++it) {
         if (*it == clientSocket) {
             clientSocketVector.erase(it);
+            clientCounter--;
             break;
         }
     }
-
-    clientCounter--;
 
 }
