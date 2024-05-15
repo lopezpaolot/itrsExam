@@ -4,8 +4,13 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 
-int main() {
+int main(int argc, char* argv[]) {
     // Initialize WSA variables
+
+
+    if (checkUserInput(argc, argv) == -1)
+        return -1;
+
     int wsaErr = initializeWSA();
     if (wsaErr != 0) {
         std::cout << "Error initializing WSA" << std::endl;
@@ -13,33 +18,80 @@ int main() {
     }
 
     SOCKET clientSocket = createSocket();
-    connectToServer(clientSocket, "127.0.0.1", 55555);
+    u_short port = std::strtoul(argv[2], nullptr, 10);
+    if (connectToServer(clientSocket, argv[1], port)) {
 
-    std::string clientName;
-    std::cout << "Enter your name: ";
-    std::getline(std::cin, clientName);
-    std::cout << "=================YOU CAN NOW START SENDING MESSAGES=================" << std::endl;
-    
-    std::thread th1(receiveFromServer, clientSocket, clientName);
+        std::string clientName;
+        std::cout << "Enter your name: ";
+        std::getline(std::cin, clientName);
+        std::cout << "=================YOU CAN NOW START SENDING MESSAGES=================" << std::endl;
+        std::thread th1(receiveFromServer, clientSocket);
+        //receiveFromServer(clientSocket, &running);
 
 
-    // Sending data to the server
-    while (1) {
-        std::string message;
-        std::getline(std::cin, message);
-        if (message != "") {
-            message = clientName + ": " + message;
-            int sbyteCount = send(clientSocket, message.c_str(), 200, 0);
-            if (sbyteCount == SOCKET_ERROR) {
-                std::cout << "Client send error: " << WSAGetLastError() << std::endl;
-                return -1;
+        // Sending data to the server
+        
+        while (running) {
+            std::string message;
+            std::getline(std::cin, message);
+            
+            if (message != "") {
+                if (message == "exit") {
+                    message = clientName + " logged off";
+                    running = false;
+                }
+                else
+                    message = clientName + ": " + message;
+                int sbyteCount = send(clientSocket, message.c_str(), 200, 0);
+                if (sbyteCount == SOCKET_ERROR) {
+                    std::cout << "Client send error: " << WSAGetLastError() << std::endl;
+                    return -1;
+                }
             }
         }
+
+        closesocket(clientSocket);
+        th1.join();
+
     }
 
 
 
     return 0;
+}
+
+int checkUserInput(int argc, char* argv[]) {
+    int retVal = 0;
+
+    if (argc != 3) {
+        std::cout << "Invalid number of arguments" << std::endl;
+        retVal = -1;
+    }
+
+    if (inet_addr(argv[1]) == -1) {
+        std::cout << "Invalid Server IP" << std::endl;
+        retVal = -1;
+    }
+
+    for (int i = 0; i < strlen(argv[2]); i++) {
+        if (!isdigit(argv[2][i])) {
+            std::cout << "Invalid Port Number" << std::endl;
+            retVal = -1;
+            break;
+        }
+    }
+
+
+
+    if (retVal == -1)
+        printproperUsage();
+
+
+    return retVal;
+}
+
+void printproperUsage() {
+    std::cout << "Usage: itrsClient.exe <SERVER_IPv4_IP> <PORT_NUM>" << std::endl;
 }
 
 int initializeWSA()
@@ -70,30 +122,37 @@ SOCKET createSocket() {
     return clientSocket;
 }
 
-void connectToServer(SOCKET clientSocket, std::string ipAddr, u_short portNum) {
+bool connectToServer(SOCKET clientSocket, char* ipAddr, u_short portNum) {
     // Connect to the server
     sockaddr_in socketInfo;
     socketInfo.sin_family = AF_INET;
-    socketInfo.sin_addr.s_addr = inet_addr(ipAddr.c_str());  // Replace with the server's IP address
+    socketInfo.sin_addr.s_addr = inet_addr(ipAddr);  // Replace with the server's IP address
     socketInfo.sin_port = htons(portNum);  // Use the same port as the server
 
     // Use the connect function
     if (connect(clientSocket, reinterpret_cast<SOCKADDR*>(&socketInfo), sizeof(socketInfo)) == SOCKET_ERROR) {
         std::cout << "Client: connect() - Failed to connect: " << WSAGetLastError() << std::endl;
         WSACleanup();
+        return false;
     }
     else {
         std::cout << "Client: Connect() is OK!" << std::endl;
     }
 
+    return true;
+
 }
 
-void receiveFromServer(SOCKET clientSocket, std::string clientName) {
-    while (1) {
+void receiveFromServer(SOCKET clientSocket) {
+    while (running) {
         char receiveBuffer[200];
         int rbyteCount = recv(clientSocket, receiveBuffer, 200, 0);
         if (rbyteCount < 0) {
-            std::cout << "Client recv error: " << WSAGetLastError() << std::endl;
+            int wsaError = WSAGetLastError();
+            if (wsaError == CONNECTION_ABORT)
+                std::cout << "Server Connection Closed";
+            else
+                std::cout << "Client recv error: " << wsaError << std::endl;
         }
         else {
             //std::cout << "Client: Received data: " << receiveBuffer << std::endl;
