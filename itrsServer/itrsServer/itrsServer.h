@@ -11,20 +11,12 @@
 #include <winsock2.h>
 #include <thread>
 #include <mutex>
+#include "chatServer.h"
 
 using namespace std;
 
-vector<SOCKET> clientSocketVector;
+
 vector<thread> clientThreads;
-int clientCounter = 0;
 mutex mtx;
 
-int initializeWSA();
-SOCKET createSocket();
-void bindSocket(SOCKET socket, string ipAddr, u_short portNum);
-void listenSocket(const SOCKET& serverSocket);
-
-SOCKET acceptClientSocket(SOCKET serverSocket);
-void echoToClient(char* receiveBuffer);
 void receivefromClient(SOCKET clientSocket);
-void socketCleanup(SOCKET clientSocket);
