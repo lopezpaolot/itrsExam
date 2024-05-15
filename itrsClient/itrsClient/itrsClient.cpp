@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
         return -1;
 
     u_short port = strtoul(argv[2], nullptr, 10);
-    chatClient client;
     if (client.connectToServer(argv[1], port)) {
         string clientName;
         cout << "Enter your name: ";

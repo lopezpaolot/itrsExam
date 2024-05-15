@@ -18,9 +18,15 @@
     <ClCompile Include="itrsServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chatServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="itrsServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chatServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
